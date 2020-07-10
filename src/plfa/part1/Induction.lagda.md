@@ -29,7 +29,7 @@ and some operations upon them.  We also import a couple of new operations,
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _^_)
 ```
 
 
@@ -77,10 +77,13 @@ Give another example of a pair of operators that have an identity
 and are associative, commutative, and distribute over one another.
 (You do not have to prove these properties.)
 
+ANSWER: The boolean operators AND /\ and OR.
+
 Give an example of an operator that has an identity and is
 associative but is not commutative.
 (You do not have to prove these properties.)
 
+ANSWER: Matrix Multiplication
 
 ## Associativity
 
@@ -656,7 +659,7 @@ time we are concerned with judgments asserting associativity:
 
 Now, we apply the rules to all the judgments we know about.  The base
 case tells us that `(zero + n) + p ≡ zero + (n + p)` for every natural
-`n` and `p`.  The inductive case tells us that if 
+`n` and `p`.  The inductive case tells us that if
 `(m + n) + p ≡ m + (n + p)` (on the day before today) then
 `(suc m + n) + p ≡ suc m + (n + p)` (today).
 We didn't know any judgments about associativity before today, so that
@@ -702,7 +705,19 @@ first four days using a finite story of creation, as
 [earlier]({{ site.baseurl }}/Naturals/#finite-creation).
 
 ```
--- Your code goes here
+{- Wasn't actually sure what was being asked here, I guess it is: -}
+
+finite-+-assoc-0 : ∀ {n m : ℕ} → (0 + n) + m ≡ 0 + (n + m)
+finite-+-assoc-0 = refl
+
+finite-+-assoc-1 : ∀ {n m : ℕ} → (1 + n) + m ≡ 1 + (n + m)
+finite-+-assoc-1 = refl
+
+finite-+-assoc-2 : ∀ {n m : ℕ} → (2 + n) + m ≡ 2 + (n + m)
+finite-+-assoc-2 = refl
+
+finite-+-assoc-3 : ∀ {n m : ℕ} → (3 + n) + m ≡ 3 + (n + m)
+finite-+-assoc-3 = refl
 ```
 
 ## Associativity with rewrite
@@ -868,7 +883,17 @@ just apply the previous results which show addition
 is associative and commutative.
 
 ```
--- Your code goes here
++-swap : ∀ (m n p : ℕ) → m + (n + p) ≡ n + (m + p)
++-swap m n p =
+  begin
+    m + (n + p)
+  ≡⟨ sym (+-assoc′ m n p) ⟩
+    (m + n) + p
+  ≡⟨ cong (_+ p) (+-comm′ m n) ⟩
+    (n + m) + p
+  ≡⟨ +-assoc′ n m p ⟩
+    n + (m + p)
+  ∎
 ```
 
 
@@ -881,9 +906,15 @@ Show multiplication distributes over addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```
--- Your code goes here
+*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+*-distrib-+ zero n p = refl
+*-distrib-+ (suc m) n p rewrite *-distrib-+ m n p =
+  begin
+    p + (m * p + n * p)
+  ≡⟨ sym (+-assoc′ p (m * p) (n * p)) ⟩
+    p + m * p + n * p
+  ∎
 ```
-
 
 #### Exercise `*-assoc` (recommended) {#times-assoc}
 
@@ -894,7 +925,9 @@ Show multiplication is associative, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```
--- Your code goes here
+*-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+*-assoc zero n p = refl
+*-assoc (suc m) n p rewrite *-assoc m n p | *-distrib-+ n (m * n) p | cong (n * p +_) (sym (*-assoc m n p)) = refl
 ```
 
 
@@ -908,9 +941,18 @@ for all naturals `m` and `n`.  As with commutativity of addition,
 you will need to formulate and prove suitable lemmas.
 
 ```
--- Your code goes here
-```
+*-annihilateʳ : ∀ (n : ℕ) → n * zero ≡ zero
+*-annihilateʳ zero = refl
+*-annihilateʳ (suc n) rewrite *-annihilateʳ n = refl
 
+*-suc : ∀ (m n : ℕ) → n * suc m ≡ n + n * m
+*-suc m zero rewrite *-annihilateʳ m = refl
+*-suc m (suc n) rewrite *-suc m n | cong suc (+-swap n m (n * m)) = refl
+
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm zero n rewrite *-annihilateʳ n = refl
+*-comm (suc m) n rewrite *-comm m n | *-suc m n = refl
+```
 
 #### Exercise `0∸n≡0` (practice) {#zero-monus}
 
@@ -921,9 +963,10 @@ Show
 for all naturals `n`. Did your proof require induction?
 
 ```
--- Your code goes here
+0∸n≣0 : ∀ (n : ℕ) → zero ∸ n ≡ zero
+0∸n≣0 zero = refl
+0∸n≣0 (suc n) = refl
 ```
-
 
 #### Exercise `∸-+-assoc` (practice) {#monus-plus-assoc}
 
@@ -934,9 +977,12 @@ Show that monus associates with addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```
--- Your code goes here
+∸-+-assoc : ∀ (m n p : ℕ) → m ∸ n ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero zero p = refl
+∸-+-assoc zero (suc n) p rewrite 0∸n≣0 p = refl
+∸-+-assoc (suc m) zero p = refl
+∸-+-assoc (suc m) (suc n) p rewrite ∸-+-assoc m n p = refl
 ```
-
 
 #### Exercise `+*^` (stretch)
 
@@ -947,6 +993,45 @@ Show the following three laws
      (m ^ n) ^ p ≡ m ^ (n * p)        (^-*-assoc)
 
 for all `m`, `n`, and `p`.
+
+```
+*-identityʳ : ∀ (m : ℕ) → m * 1 ≡ m
+*-identityʳ zero = refl
+*-identityʳ (suc n) rewrite *-identityʳ n = refl
+
+^-distribˡ-+-* : ∀ (m n p : ℕ) → m ^ (n + p) ≡ (m ^ n) * (m ^ p)
+^-distribˡ-+-* m zero zero = refl
+^-distribˡ-+-* m zero (suc p) rewrite +-identityʳ (m * (m ^ p)) = refl
+^-distribˡ-+-* m (suc n) zero rewrite +-identityʳ n | *-identityʳ (m * (m ^ n)) = refl
+^-distribˡ-+-* m (suc n) (suc p) rewrite +-comm n (suc p) |
+                                         +-comm p n |
+                                         ^-distribˡ-+-* m n p |
+                                         sym (*-assoc m m ((m ^ n) * (m ^ p))) |
+                                         sym (*-assoc (m * m) (m ^ n) (m ^ p)) |
+                                         sym (*-assoc (m * (m ^ n)) m (m ^ p)) |
+                                         *-comm (m * (m ^ n)) m |
+                                         sym (*-assoc m m (m ^ n)) = refl
+
+^-distribʳ-* : ∀ (m n p : ℕ) → (m * n) ^ p ≡ (m ^ p) * (n ^ p)
+^-distribʳ-* m n zero = refl
+^-distribʳ-* m n (suc p) rewrite ^-distribʳ-* m n p = {!!} -- just twiddling
+
+1^ : ∀ (m : ℕ) → 1 ^ m ≡ 1
+1^ zero = refl
+1^ (suc m) rewrite 1^ m = refl
+
+^-*-assoc : ∀ (m n p : ℕ) → (m ^ n) ^ p ≡ m ^ (n * p)
+^-*-assoc m zero zero = refl
+^-*-assoc m zero (suc p) rewrite +-identityʳ (1 ^ p) | 1^ p = refl
+^-*-assoc m (suc n) zero rewrite *-annihilateʳ n = refl
+^-*-assoc m (suc n) (suc p) rewrite *-comm n (suc p) |
+                                    ^-distribʳ-* m (m ^ n) p |
+                                    ^-*-assoc m n p |
+                                    ^-distribˡ-+-* m p (n + p * n) |
+                                    ^-distribˡ-+-* m n (p * n) |
+                                    *-comm p n |
+                                    = {!!} -- just twiddling
+```
 
 
 #### Exercise `Bin-laws` (stretch) {#Bin-laws}

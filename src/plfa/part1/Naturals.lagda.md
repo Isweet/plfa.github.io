@@ -81,9 +81,9 @@ successor of two; and so on.
 Write out `7` in longhand.
 
 ```
--- Your code goes here
+seven : ℕ
+seven = suc (suc (suc (suc (suc (suc (suc zero))))))
 ```
-
 
 ## Unpacking the inference rules
 
@@ -430,7 +430,23 @@ other word for evidence, which we will use interchangeably, is _proof_.
 Compute `3 + 4`, writing out your reasoning as a chain of equations, using the equations for `+`.
 
 ```
--- Your code goes here
+_ : 3 + 4 ≡ 7
+_ =
+  begin
+    3 + 4
+  ≡⟨⟩    -- Def. of ℕ
+    (suc (suc (suc zero))) + (suc (suc (suc (suc zero))))
+  ≡⟨⟩    -- Inductive
+    suc ((suc (suc zero)) + (suc (suc (suc (suc zero)))))
+  ≡⟨⟩    -- Inductive
+    suc (suc ((suc zero) + (suc (suc (suc (suc zero))))))
+  ≡⟨⟩    -- Inductive
+    suc (suc (suc (zero + (suc (suc (suc (suc zero)))))))
+  ≡⟨⟩    -- Base
+    suc (suc (suc (suc (suc (suc (suc zero))))))
+  ≡⟨⟩    -- Def. of ℕ
+    7
+  ∎
 ```
 
 
@@ -492,7 +508,21 @@ Compute `3 * 4`, writing out your reasoning as a chain of equations, using the e
 (You do not need to step through the evaluation of `+`.)
 
 ```
--- Your code goes here
+_ : 3 * 4 ≡ 12
+_ =
+  begin
+    3 * 4
+  ≡⟨⟩
+    4 + (2 * 4)
+  ≡⟨⟩
+    4 + (4 + (1 * 4))
+  ≡⟨⟩
+    4 + (4 + (4 + (0 * 4)))
+  ≡⟨⟩
+    4 + (4 + (4 + 0))
+  ≡⟨⟩
+    12
+  ∎
 ```
 
 
@@ -506,10 +536,10 @@ Define exponentiation, which is given by the following equations:
 Check that `3 ^ 4` is `81`.
 
 ```
--- Your code goes here
+_^_ : ℕ → ℕ → ℕ
+m ^ 0  =  1
+m ^ (suc n)  =  m * (m ^ n)
 ```
-
-
 
 ## Monus
 
@@ -571,9 +601,34 @@ _ =
 Compute `5 ∸ 3` and `3 ∸ 5`, writing out your reasoning as a chain of equations.
 
 ```
--- Your code goes here
-```
+_ : 5 ∸ 3 ≡ 2
+_ =
+  begin
+    5 ∸ 3
+  ≡⟨⟩
+    4 ∸ 2
+  ≡⟨⟩
+    3 ∸ 1
+  ≡⟨⟩
+    2 ∸ 0
+  ≡⟨⟩
+    2
+  ∎
 
+_ : 3 ∸ 5 ≡ 0
+_ =
+  begin
+    3 ∸ 5
+  ≡⟨⟩
+    2 ∸ 4
+  ≡⟨⟩
+    1 ∸ 3
+  ≡⟨⟩
+    0 ∸ 2
+  ≡⟨⟩
+    0
+  ∎
+```
 
 ## Precedence
 
@@ -917,9 +972,51 @@ represents a positive natural, and represent zero by `⟨⟩ O`.
 Confirm that these both give the correct answer for zero through four.
 
 ```
--- Your code goes here
-```
+inc : Bin → Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (b O) = b I
+inc (b I) = (inc b) O
 
+to : ℕ → Bin
+to zero    = ⟨⟩ O
+to (suc n) = inc (to n)
+
+from : Bin → ℕ
+from ⟨⟩ = zero
+from (b O) = 2 * (from b)
+from (b I) = 1 + 2 * (from b)
+
+to-from-zero : to (from (⟨⟩ O)) ≡ ⟨⟩ O
+to-from-zero = refl
+
+from-to-zero : from (to 0) ≡ 0
+from-to-zero = refl
+
+to-from-one : to (from (⟨⟩ I)) ≡ ⟨⟩ I
+to-from-one = refl
+
+from-to-one : from (to 1) ≡ 1
+from-to-one = refl
+
+to-from-two : to (from (⟨⟩ I O)) ≡ ⟨⟩ I O
+to-from-two = refl
+
+from-to-two : from (to 2) ≡ 2
+from-to-two = refl
+
+to-from-three : to (from (⟨⟩ I I)) ≡ ⟨⟩ I I
+to-from-three = refl
+
+from-to-three : from (to 3) ≡ 3
+from-to-three = refl
+
+to-from-four : to (from (⟨⟩ I O O)) ≡ ⟨⟩ I O O
+to-from-four = refl
+
+from-to-four : from (to 4) ≡ 4
+from-to-four = refl
+
+```
 
 ## Standard library
 
