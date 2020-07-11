@@ -1014,7 +1014,12 @@ for all `m`, `n`, and `p`.
 
 ^-distribʳ-* : ∀ (m n p : ℕ) → (m * n) ^ p ≡ (m ^ p) * (n ^ p)
 ^-distribʳ-* m n zero = refl
-^-distribʳ-* m n (suc p) rewrite ^-distribʳ-* m n p = {!!} -- just twiddling
+^-distribʳ-* m n (suc p) rewrite ^-distribʳ-* m n p |
+                                 *-assoc m n ((m ^ p) * (n ^ p)) |
+                                 sym (*-assoc n (m ^ p) (n ^ p)) |
+                                 *-comm n (m ^ p) |
+                                 *-assoc m (m ^ p) (n * (n ^ p)) |
+                                 sym (*-assoc (m ^ p) n (n ^ p)) = refl
 
 1^ : ∀ (m : ℕ) → 1 ^ m ≡ 1
 1^ zero = refl
@@ -1030,7 +1035,11 @@ for all `m`, `n`, and `p`.
                                     ^-distribˡ-+-* m p (n + p * n) |
                                     ^-distribˡ-+-* m n (p * n) |
                                     *-comm p n |
-                                    = {!!} -- just twiddling
+                                    *-assoc m (m ^ n) ((m ^ p) * (m ^ (n * p))) |
+                                    sym (*-assoc (m ^ n) (m ^ p) (m ^ (n * p))) |
+                                    *-comm (m ^ n) (m ^ p) |
+                                    *-assoc (m ^ p) (m ^ n) (m ^ (n * p))
+                                    = refl
 ```
 
 
@@ -1055,7 +1064,45 @@ over bitstrings:
 For each law: if it holds, prove; if not, give a counterexample.
 
 ```
--- Your code goes here
+data Bin : Set where
+  ⟨⟩ : Bin
+  _O : Bin → Bin
+  _I : Bin → Bin
+
+inc : Bin → Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (b O) = b I
+inc (b I) = (inc b) O
+
+to : ℕ → Bin
+to zero    = ⟨⟩ O
+to (suc n) = inc (to n)
+
+from : Bin → ℕ
+from ⟨⟩ = zero
+from (b O) = 2 * (from b)
+from (b I) = 1 + 2 * (from b)
+
+from-inc : ∀ b → from (inc b) ≡ suc (from b)
+from-inc ⟨⟩ = refl
+from-inc (b O) = refl
+from-inc (b I) rewrite +-identityʳ (from (inc b)) | +-identityʳ (from b) | from-inc b | +-comm (from b) (suc (from b)) = refl
+
+from-to : ∀ n → from (to n) ≡ n
+from-to zero = refl
+from-to (suc n) rewrite from-inc (to n) | from-to n = refl
+
+{-
+
+to-from : ∀ b → to (from b) ≡ b
+
+The above doesn't hold because unary has a single unique representation of zero,
+and binary has many representations.
+
+Counterexample: -}
+
+to-from-counter-O : to (from ⟨⟩) ≡ ⟨⟩ O
+to-from-counter-O = refl
 ```
 
 
